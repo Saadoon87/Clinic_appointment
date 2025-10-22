@@ -8,10 +8,6 @@ from rest_framework.generics import ListAPIView
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework_simplejwt.tokens import RefreshToken, TokenError
 import datetime
-import jwt
-from .utils import AuthenticateUser
-from jwt.exceptions import ExpiredSignatureError, InvalidTokenError
-from rest_framework.exceptions import AuthenticationFailed
 
 
 # Create your views here.
