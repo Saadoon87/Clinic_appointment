@@ -9,5 +9,5 @@ urlpatterns = [
     path('api/appointments/', AppointmentAPIView.as_view(), name='appointments'),
     path('api/appointments/<int:pk>/',
          AppointmentAPIView.as_view(), name='update_appointments'),
-    path('login/', LoginView.as_view(), name='login'),
+    path('login/', CustomLoginView.as_view(), name='login'),
 ]

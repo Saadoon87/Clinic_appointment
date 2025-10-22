@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from .models import User, DoctorProfile, Appointment
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 
 class LoginSerializer(serializers.Serializer):
@@ -15,13 +16,34 @@ class UserSerializer(serializers.ModelSerializer):
             'password': {'write_only': True}
         }
 
+
+class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
+    def validate(self, attrs):
+        data = super().validate(attrs)
+
+        data["user"] = {
+            'id': self.user.id,
+            "email": self.user.email,
+            "role": self.user.role,
+            "full_name": self.user.full_name
+        }
+
+        return data
+
+
+class RegisterSerializer(serializers.ModelSerializer):
+    password = serializers.CharField(write_only=True, min_length=8)
+
+    class Meta:
+        model = User
+        fields = ['email', 'full_name', 'password', 'role']
+
     def create(self, validated_data):
-        password = validated_data.pop('password', None)
-        instance = self.Meta.model(**validated_data)
-        if password is not None:
-            instance.set_password(password)
-        instance.save()
-        return instance
+        password = validated_data.pop('password')
+        user = user(**validated_data)
+        user.set_password(password)
+        user.save()
+        return user
 
 
 class DoctorSerializer(serializers.ModelSerializer):

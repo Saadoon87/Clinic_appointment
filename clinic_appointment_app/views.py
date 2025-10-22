@@ -15,6 +15,9 @@ from rest_framework.exceptions import AuthenticationFailed
 
 
 # Create your views here.
+class CustomLoginView(TokenObtainPairView):
+    serializer_class = CustomTokenObtainPairSerializer
+
 
 class RegisterAPIView(APIView):
     def post(self, request):
@@ -27,16 +30,34 @@ class RegisterAPIView(APIView):
 
 class ViewUsersAPIView(APIView):
     def get(self, request):
-        user = AuthenticateUser(request)
-        if not user:
-            raise AuthenticationFailed("User Not Found")
-        allusers = User.objects.all()
-        serializer = UserSerializer(allusers, many=True)
+        user_id = request.user.id
+        print(user_id)
+        try:
+            user = User.objects.get(id=user_id)
+        except User.DoesNotExist:
+            return Response({"detail": "Incorrect User"})
+
+        # Permissions or Authorizations
+        if user.role not in ["DOCTOR", "ADMIN"]:
+            return Response({"detail": "You do not have permission to perform this action"}, status=status.HTTP_403_FORBIDDEN)
+
+        users = User.objects.all()
+        serializer = UserSerializer(users, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class DoctorAPIView(APIView):
     def get(self, request):
+        user_id = request.user.id
+        print(user_id)
+        try:
+            user = User.objects.get(id=user_id)
+        except User.DoesNotExist:
+            return Response({"detail": "Incorrect User"}, status=status.HTTP_401_UNAUTHORIZED)
+
+        if user.role not in ["DOCTOR", "ADMIN"]:
+            return Response({"detail": "You dont have enough permission to view this data!"}, status=status.HTTP_401_UNAUTHORIZED)
+
         doctors = DoctorProfile.objects.all()
         serializer = DoctorSerializer(doctors, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
@@ -73,7 +94,9 @@ class AppointmentAPIView(APIView):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class LoginView(APIView):
+# class LoginView(APIView):
+
+
     def post(self, request):
 
         serializer = LoginSerializer(data=request.data)
