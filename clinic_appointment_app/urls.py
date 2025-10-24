@@ -10,4 +10,6 @@ urlpatterns = [
     path('api/appointments/<int:pk>/',
          AppointmentAPIView.as_view(), name='update_appointments'),
     path('api/auth/login/', CustomLoginView.as_view(), name='login'),
+    path('api/appointments/<int:pk>/complete/',
+         AppointmentCompleteAPIView.as_view(), name='complete_appointments'),
 ]

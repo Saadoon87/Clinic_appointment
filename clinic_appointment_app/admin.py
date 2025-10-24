@@ -5,14 +5,14 @@ from .models import *
 
 @admin.register(DoctorProfile)
 class DoctorAdmin(admin.ModelAdmin):
-    list_display = ['user', 'specialization']
+    list_display = ['id', 'user', 'specialization']
 
 
 @admin.register(User)
 class UserAdmin(admin.ModelAdmin):
-    list_display = ['full_name', 'email', 'role']
+    list_display = ['id', 'full_name', 'email', 'role']
 
 
 @admin.register(Appointment)
 class AppointmentAdmin(admin.ModelAdmin):
-    list_display = ['doctor', 'patient', 'date', 'time', 'status']
+    list_display = ['id', 'doctor', 'patient', 'date', 'time', 'status']

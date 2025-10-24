@@ -73,7 +73,7 @@ class AppointmentAPIView(APIView):
             return Response({"detail": "Incorrect User"}, status=status.HTTP_401_UNAUTHORIZED)
 
         if user.role not in ["ADMIN", "DOCTOR"]:
-            return Response({"detail": "You dont have permission"})
+            return Response({"detail": "You dont have permission"}, status=status.HTTP_401_UNAUTHORIZED)
 
         appointments = Appointment.objects.all()
         serializer = AppointmentSerializer(appointments, many=True)
@@ -88,7 +88,7 @@ class AppointmentAPIView(APIView):
             return Response({"detail": "Incorrect User"}, status=status.HTTP_401_UNAUTHORIZED)
 
         if user.role != "PATIENT":
-            return Response({"detail": "You dont have permission"})
+            return Response({"detail": "You dont have permission"},  status=status.HTTP_401_UNAUTHORIZED)
 
         serializer = AppointmentSerializer(data=request.data)
         if serializer.is_valid():
@@ -114,3 +114,17 @@ class AppointmentAPIView(APIView):
             else:
                 return Response({"detail": "You cannot edit this appointment"}, status=status.HTTP_400_BAD_REQUEST)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class AppointmentCompleteAPIView(APIView):
+    def patch(self, request, pk):
+        user = request.user
+        try:
+            appointment = Appointment.objects.get(pk=pk)
+        except Appointment.DoesNotExist:
+            return Response({"detail": "Appointment not found"}, status=status.HTTP_401_UNAUTHORIZED)
+        if user.role != "DOCTOR" or appointment.doctor.user.id != user.id:
+            return Response({"detail": "Only assigned doctor can edit this request"})
+        appointment.status = "COMPLETED"
+        appointment.save()
+        return Response({"detail": "Appointment Completed"}, status=status.HTTP_200_OK)
