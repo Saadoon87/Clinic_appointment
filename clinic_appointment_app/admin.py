@@ -15,4 +15,5 @@ class UserAdmin(admin.ModelAdmin):
 
 @admin.register(Appointment)
 class AppointmentAdmin(admin.ModelAdmin):
-    list_display = ['id', 'doctor', 'patient', 'date', 'time', 'status']
+    list_display = ['id', 'doctor', 'patient',
+                    'date', 'start_time', 'end_time', 'status']

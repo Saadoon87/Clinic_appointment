@@ -12,4 +12,6 @@ urlpatterns = [
     path('api/auth/login/', CustomLoginView.as_view(), name='login'),
     path('api/appointments/<int:pk>/complete/',
          AppointmentCompleteAPIView.as_view(), name='complete_appointments'),
+    path('api/appointments/doctor/specialization/',
+         DoctorFilterAPIView.as_view(), name='complete_appointments'),
 ]

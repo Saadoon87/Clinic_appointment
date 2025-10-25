@@ -4,10 +4,9 @@ from .serializers import *
 from rest_framework.views import APIView
 from rest_framework import status, permissions
 from rest_framework.response import Response
-from rest_framework.generics import ListAPIView
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework_simplejwt.tokens import RefreshToken, TokenError
-import datetime
+from datetime import datetime, timedelta
 
 
 # Create your views here.
@@ -85,14 +84,23 @@ class AppointmentAPIView(APIView):
         try:
             user = User.objects.get(id=user_id)
         except User.DoesNotExist:
-            return Response({"detail": "Incorrect User"}, status=status.HTTP_401_UNAUTHORIZED)
+            return Response({"detail": "User not registered"}, status=status.HTTP_401_UNAUTHORIZED)
 
         if user.role != "PATIENT":
             return Response({"detail": "You dont have permission"},  status=status.HTTP_401_UNAUTHORIZED)
 
         serializer = AppointmentSerializer(data=request.data)
         if serializer.is_valid():
-            serializer.save()
+            doctor = serializer.validated_data["doctor"]
+            date = serializer.validated_data["date"]
+            start_time = serializer.validated_data["start_time"]
+            requested_booking = Appointment.objects.filter(
+                doctor=doctor, date=date, start_time=start_time)
+            if requested_booking.exists():
+                return Response({"detail": "Doctor Already Booked at the same time"}, status=status.HTTP_406_NOT_ACCEPTABLE)
+            end_time = (datetime.combine(date, start_time) +
+                        timedelta(hours=1)).time()
+            serializer.save(end_time=end_time)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -128,3 +136,23 @@ class AppointmentCompleteAPIView(APIView):
         appointment.status = "COMPLETED"
         appointment.save()
         return Response({"detail": "Appointment Completed"}, status=status.HTTP_200_OK)
+
+
+class DoctorFilterAPIView(APIView):
+    def get(self, request):
+        specialization = request.query_params.get("specialization")
+        name = request.query_params.get("name")
+        doctors = DoctorProfile.objects.all()
+        user_id = request.user.id
+        print(user_id)
+        try:
+            user = User.objects.get(id=user_id)
+        except User.DoesNotExist:
+            return Response({"detail": "User not registered"}, status=status.HTTP_401_UNAUTHORIZED)
+
+        if specialization:
+            doctors = doctors.filter(specialization__iexact=specialization)
+        if name:
+            doctors = doctors.filter(user__full_name__icontains=name)
+        serializer = DoctorSerializer(doctors, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)

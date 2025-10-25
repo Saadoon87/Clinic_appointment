@@ -1,5 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
+from datetime import timedelta
+
 
 # Create your models here.
 
@@ -61,9 +63,10 @@ class Appointment(models.Model):
     patient = models.ForeignKey(
         User, on_delete=models.CASCADE)
     date = models.DateField()
-    time = models.TimeField()
+    start_time = models.TimeField()
+    end_time = models.TimeField(blank=True, null=True)
     status = models.CharField(choices=Status.choices,
                               max_length=10, default=Status.PENDING)
 
     def __str__(self):
-        return f"Appointment with {self.doctor.user.full_name} on {self.date} at {self.time}"
+        return f"Appointment with {self.doctor.user.full_name} on {self.date} at {self.start_time}"

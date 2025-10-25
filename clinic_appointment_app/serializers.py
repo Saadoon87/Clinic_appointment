@@ -63,11 +63,11 @@ class AppointmentSerializer(serializers.ModelSerializer):
         source='doctor.user.full_name', read_only=True)
     patient_name = serializers.CharField(
         source='patient.full_name', read_only=True)
-    # role = serializers.CharField(source='patient.role', read_only=True)
     patient = serializers.PrimaryKeyRelatedField(
         queryset=User.objects.filter(role='PATIENT'))
+    end_time = serializers.TimeField(read_only=True)
 
     class Meta:
         model = Appointment
         fields = ['id', 'doctor_name', 'doctor',
-                  'patient_name', 'patient', 'date', 'time', 'status']
+                  'patient_name', 'patient', 'date', 'start_time', 'end_time',  'status']
